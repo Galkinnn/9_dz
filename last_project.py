@@ -34,8 +34,8 @@ class Main(tk.Frame):
             self.view_records()
 
     # редактирует записи
-    def upadate_record(self, name, tel, email):
-        self.db.c.execute("UPDATE db SET name=?, tel=?, email=? WHERE ID=?", (name, tel, email, self.tree.set(self.tree.selection()[0], '#1')))
+    def upadate_record(self, name, tel, email, zp):
+        self.db.c.execute("UPDATE db SET name=?, tel=?, email=?, zp=? WHERE ID=?", (name, tel, email, zp, self.tree.set(self.tree.selection()[0], '#1')))
         self.db.connect.commit()
         self.view_records()
 
@@ -51,8 +51,8 @@ class Main(tk.Frame):
          for row in self.db.c.fetchall()]
 
     # функция, которая выводит все записи
-    def records(self, name, tel, email):
-        self.db.insert_data(name, tel, email)
+    def records(self, name, tel, email, zp):
+        self.db.insert_data(name, tel, email, zp)
         self.view_records()
 
     # функция, открывающая окно добавления записи
@@ -68,15 +68,19 @@ class Main(tk.Frame):
         btn_open_dialog = tk.Button(toolbar, bg = '#d7d8e0', bd = 0, image = self.add_img, command = self.open_dialog)
         btn_open_dialog.pack(side = tk.LEFT)
 
-        self.tree = ttk.Treeview(self, columns = ('ID', 'name', 'tel', 'email'), height = 45, show = 'headings')
+        self.tree = ttk.Treeview(self, columns = ('ID', 'name', 'tel', 'email', 'zp'), height = 45, show = 'headings')
 
         self.tree.column('ID', width = 30, anchor = tk.CENTER)
-        self.tree.column('name', width = 300, anchor = tk.CENTER)
+        self.tree.column('name', width = 200, anchor = tk.CENTER)
+        self.tree.column('tel', width = 150, anchor = tk.CENTER)
+        self.tree.column('email', width = 150, anchor = tk.CENTER)
+        self.tree.column('zp', width = 150, anchor = tk.CENTER)
 
         self.tree.heading('ID', text = 'ID')
         self.tree.heading('name', text = 'ФИО')
         self.tree.heading('tel', text = 'Телефон')
         self.tree.heading('email', text = 'E-mail')
+        self.tree.heading('zp', text = 'Зарплата')
 
         self.tree.pack(side = tk.LEFT)
 
@@ -114,10 +118,12 @@ class Child(tk.Toplevel):
 
         label_name = tk.Label(self, text = 'ФИО')
         label_name.place(x = 50, y = 50)
-        label_select = tk.Label(self, text = 'Телефон')
-        label_select.place(x = 50, y = 80)
-        label_sum = tk.Label(self, text = 'E-mail')
-        label_sum.place(x = 50, y = 110)
+        label_tel = tk.Label(self, text = 'Телефон')
+        label_tel.place(x = 50, y = 80)
+        label_email = tk.Label(self, text = 'E-mail')
+        label_email.place(x = 50, y = 110)
+        label_zp = tk.Label(self, text = 'Зарпалата')
+        label_zp.place(x = 50, y = 140)
 
         self.entry_name = ttk.Entry(self)
         self.entry_name.place(x = 200, y = 50)
@@ -125,6 +131,8 @@ class Child(tk.Toplevel):
         self.entry_tel.place(x = 200, y = 80)
         self.entry_email = ttk.Entry(self)
         self.entry_email.place(x = 200, y = 110)
+        self.entry_zp = ttk.Entry(self)
+        self.entry_zp.place(x = 200, y = 140)
 
         self.btn_cancel = ttk.Button(self, text = 'Закрыть', command = self.destroy)
         self.btn_cancel.place(x = 300, y = 170)
@@ -133,7 +141,8 @@ class Child(tk.Toplevel):
         self.btn_ok.bind('<Button-1>', lambda event:
                          self.view.records(self.entry_name.get(),
                                            self.entry_tel.get(),
-                                           self.entry_email.get()))
+                                           self.entry_email.get(),
+                                           self.entry_zp.get()))
         
 # класс редактирования записей
 class Update(Child):
@@ -153,7 +162,8 @@ class Update(Child):
         btn_edit.bind('<Button-1>', lambda event:
                          self.view.upadate_record(self.entry_name.get(),
                                                 self.entry_tel.get(),
-                                                self.entry_email.get()))
+                                                self.entry_email.get(),
+                                                self.entry_zp.get()))
         btn_edit.bind('<Button-1>', lambda event: self.destroy(), add = '+')
         self.btn_ok.destroy()
 
@@ -164,6 +174,7 @@ class Update(Child):
         self.entry_name.insert(0, row[1])
         self.entry_tel.insert(0, row[2])
         self.entry_email.insert(0, row[3])
+        self.entry_zp.insert(0, row[4])
 
 # класс поиска
 class Search(tk.Toplevel):
@@ -204,14 +215,15 @@ class DB:
                 id INTEGER PRIMARY KEY,
                 name TEXT, 
                 tel TEXT,
-                email TEXT);
+                email TEXT, 
+                zp TEXT);
         """)
         self.connect.commit()
 
     # соранение данных в дб
-    def insert_data(self, name, tel, email):
-        self.c.execute("""INSERT INTO db(name, tel, email) 
-                VALUES(?, ?, ?)""", (name, tel, email))
+    def insert_data(self, name, tel, email, zp):
+        self.c.execute("""INSERT INTO db(name, tel, email, zp) 
+                VALUES(?, ?, ?, ?)""", (name, tel, email, zp))
         self.connect.commit()
 
 # тут реализована подпись, указана дб и без этого всего код работать не будет
